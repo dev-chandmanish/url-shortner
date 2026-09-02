@@ -27,6 +27,7 @@ x-backend-env: &backend-env
   DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
   REDIS_HOST: redis
   REDIS_PORT: "6379"
+  REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD}
 
 services:
   postgres:
@@ -68,7 +69,15 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?Set REDIS_PASSWORD}
+    command:
+      [
+        "sh",
+        "-c",
+        "exec redis-server /usr/local/etc/redis/redis.conf --requirepass \"$$REDIS_PASSWORD\"",
+      ]
     volumes:
       - redis_prod_data:/data
       - ./deploy/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
