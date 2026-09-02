@@ -3,7 +3,7 @@
 #   cp .env.production.example .env.production
 #   docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
 #
-# TLS is expected at nginx/Caddy/a cloud load balancer in front of the frontend.
+# TLS is terminated by the Caddy service (ports 80 and 443).
 
 name: url-shortner-prod
 
@@ -14,6 +14,8 @@ networks:
 volumes:
   postgres_prod_data:
   redis_prod_data:
+  caddy_data:
+  caddy_config:
 
 x-backend-env: &backend-env
   NODE_ENV: production
@@ -143,10 +145,24 @@ services:
         VITE_API_BASE_URL: ""
     image: url-shortner-frontend:prod
     restart: unless-stopped
-    ports:
-      - "${FRONTEND_HOST_PORT:-80}:80"
     depends_on:
       backend:
+        condition: service_healthy
+    networks:
+      - app
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      frontend:
         condition: service_healthy
     networks:
       - app
