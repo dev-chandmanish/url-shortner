@@ -1,0 +1,27 @@
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Test / coverage
+coverage/
+backend/cookies.txt
+backend/empty-user-cookies.txt
+backend/user2-cookies.txt
